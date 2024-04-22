@@ -1,0 +1,55 @@
+- name: Copy bash scripts and set up cron job
+  hosts: slaveserver
+  tasks:
+    - name: Create lamp directory if it doesn't exist
+      become: yes
+      become_user: vagrant
+      file:
+        path: /home/vagrant/lamp
+        state: directory
+        owner: vagrant
+        group: vagrant
+        mode: '0755'
+
+    - name: Create uptime log directory if it doesn't exist
+      become: yes
+      become_user: vagrant
+      file:
+        path: /home/vagrant/uptimelog
+        state: directory
+        owner: vagrant
+        group: vagrant
+        mode: '0755'
+
+    - name: Copy lamp.sh to slave
+      copy:
+        src: /home/vagrant/lamp/lamp.sh
+        dest: /home/vagrant/lamp/lamp.sh
+        owner: vagrant
+        group: vagrant
+        mode: '0755'
+
+    - name: Execute lamp.sh on slave
+      command: /home/vagrant/lamp/lamp.sh
+      args:
+        creates: /home/vagrant/lamp/lamp_installed.flag
+      become: yes
+      become_user: vagrant
+
+    - name: Copy uptimelog.sh to slave
+      copy:
+        src: /home/vagrant/uptimelog/uptimelog.sh
+        dest: /home/vagrant/uptimelog/uptimelog.sh
+        owner: vagrant
+        group: vagrant
+        mode: '0755'
+
+    - name: Set up cron job for uptimelog.sh
+      cron:
+        name: Run uptimelog.sh daily at 12 noon
+        job: /home/vagrant/uptimelog/uptimelog.sh
+        minute: 0
+        hour: 12
+        user: vagrant
+        cron_file: uptimelog
+
